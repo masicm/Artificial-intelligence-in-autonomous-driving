@@ -266,9 +266,6 @@ class World(object):
         blueprint_library = self.world.get_blueprint_library()
         blueprint = blueprint_library.find("vehicle.seat.leon")
         blueprint.set_attribute('role_name', self.actor_role_name)
-        #if blueprint.has_attribute('color'):
-            #color = random.choice(blueprint.get_attribute('color').recommended_values)
-            #blueprint.set_attribute('color', color)
         if blueprint.has_attribute('driver_id'):
             driver_id = random.choice(blueprint.get_attribute('driver_id').recommended_values)
             blueprint.set_attribute('driver_id', driver_id)
@@ -282,17 +279,11 @@ class World(object):
         # Spawn the player.
         if self.player is not None:
             blueprint_library = self.world.get_blueprint_library()
-           # blueprint1 = blueprint_library.find("vehicle.seat.leon")
             spawn_point = self.player.get_transform()
-           # spawn_point1 = self.player.get_transform()
             spawn_point.location.z += 2.0
-            #spawn_point1.location.z +=4.0
             spawn_point.rotation.roll = 0.0
             spawn_point.rotation.pitch = 0.0
-           # spawn_point1.rotation.roll = 0.0
-           # spawn_point1.rotation.pitch = 0.0
             self.destroy()
-           # self.player = self.world.try_spawn_actor(blueprint1, spawn_point1)
             self.player = self.world.try_spawn_actor(blueprint, spawn_point)
             self.show_vehicle_telemetry = False
             self.modify_vehicle_physics(self.player)
@@ -310,7 +301,6 @@ class World(object):
         
         
         self.collision_sensor = CollisionSensor(self.player, self.hud)
-        #proba
         self.obstacle_detector=ObstacleDetector(self.player, self.hud)
         self.lane_invasion_sensor = LaneInvasionSensor(self.player, self.hud)
         self.gnss_sensor = GnssSensor(self.player)
@@ -392,6 +382,16 @@ class World(object):
                 sensor.destroy()
         if self.player is not None:
             self.player.destroy()
+
+    def set_constant_velocity(self, target_speed):
+        """Forces the agent to drive at the specified speed"""
+        delta_t = self._world.get_snapshot().timestamp.delta_seconds
+        if target_speed > self._current_speed:
+            self.current_speed = min(self._current_speed + self._acceleration * delta_t, target_speed)
+        elif target_speed < self._current_speed:
+            self._current_speed = max(self._current_speed - self._deceleration * delta_t, target_speed)
+
+        self._vehicle.enable_constant_velocity(carla.Vector3D(self._current_speed, 0, 0))
 
 
 # ==============================================================================
@@ -919,8 +919,7 @@ class ObstacleDetector(object):
             velocity_Obstacle = True
             actor_type = get_actor_display_name(event.other_actor)
             self.hud.notification('Obstacle detected %r' % actor_type)
-            #print("OBSTACLEEEEEEEEEEEEEEEEEE")
-            #print(velocity)
+  
 
 
 # ==============================================================================
@@ -1257,9 +1256,6 @@ def game_loop(args):
     try:
         client = carla.Client(args.host, args.port)
         client.set_timeout(20.0)
-        #tm = client.get_trafficmanager(args.port)
-        #tm_port = tm.get_port()
-
         sim_world = client.get_world()
         if args.sync:
             original_settings = sim_world.get_settings()
@@ -1268,7 +1264,6 @@ def game_loop(args):
                 settings.synchronous_mode = True
                 settings.fixed_delta_seconds = 0.05
             sim_world.apply_settings(settings)
-            #print("Najjaki sme")
 
             traffic_manager = client.get_trafficmanager()
             traffic_manager.set_synchronous_mode(True)
@@ -1307,22 +1302,7 @@ def game_loop(args):
                 return
             world.tick(clock)
             world.render(display)
-            frame_count += 1
-            #if frame_count%6 ==0:
-                #img = capture_frame(display)
-                #detect(img)
-                #label,label2 = detect(img)
-                #a = world.player.get_velocity()
-                #print(a)
-                #if(label !=""):
-                 #   if(label == "30"):
-                  #      world.player.set_target_velocity(carla.Vector3D(9, 0, 0)) #interval staviteeee
-                  #      world.constant_velocity_enabled = True
-                   # elif(label == "60"):
-                    #    world.player.set_target_velocity(carla.Vector3D(17, 0, 0))
-                     #   world.constant_velocity_enabled = True
-                #if(label2 == "car"):
-                #print("ANJAAAAAAAAAA")
+                     
             global velocity_Obstacle
             global distance_other_actor
             if(velocity_Obstacle):
@@ -1332,6 +1312,34 @@ def game_loop(args):
                 if distance_other_actor < 10:
                     world.player.set_target_velocity(carla.Vector3D(0, 0, 0))
                     velocity_Obstacle = False
+            frame_count += 1
+            if frame_count%6 ==0:
+                img = capture_frame(display)
+                detect(img)
+                label,label2 = detect(img)
+                if(label !=""):
+                   if(label == "30"):
+                       vel_1 = world.player.get_velocity()
+                       e = np.array([vel_1.x, vel_1.y, vel_1.z])
+                       speed = math.sqrt(e[0]*e[0] + e[1]*e[1] + e[2]*e[2])
+                       speed = speed * 3.6
+                       if(speed < 30):
+                            v = 30 * 3,6
+                            world.player.enable_constant_velocity(carla.Vector3D(1.5, 0, 0))
+                            world.player.enable_constant_velocity(carla.Vector3D(3, 0, 0))
+                            world.player.enable_constant_velocity(carla.Vector3D(9, 0, 0)) #interval staviteeee
+                            world.constant_velocity_enabled = True
+                   elif(label == "60"):
+                       vel_2 = world.player.get_velocity()
+                       e = np.array([vel_2.x, vel_2.y, vel_2.z])
+                       speed = math.sqrt(e[0]*e[0] + e[1]*e[1] + e[2]*e[2])
+                       speed = speed * 3.6
+                       if(speed < 60):
+                            world.player.enable_constant_velocity(carla.Vector3D(1.5, 0, 0))
+                            world.player.enable_constant_velocity(carla.Vector3D(3, 0, 0))
+                            world.player.enable_constant_velocity(carla.Vector3D(9, 0, 0))
+                            world.player.enable_constant_velocity(carla.Vector3D(17, 0, 0))
+                            world.constant_velocity_enabled = True
             pygame.display.flip()
 
     finally:
