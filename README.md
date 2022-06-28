@@ -27,18 +27,16 @@ V skripti master_car.py smo ustvarili željene senzorje: RGB camera, Depth camer
  ![image](https://user-images.githubusercontent.com/77195829/176135136-2a43d35d-7a28-4e67-a179-16c9943e9f03.png)
 
  
-V tem trenutku imamo še uspešno implementirano realnočasovno zaznavanje in razpoznavanje prometnih znakov omejitve hitrosti s pomočjo YOLOv4 nevronske mreže in objektov kot so avtomobili z YOLOv5 nevronsko mrežo. Edina težava, ki jo pri tem imamo je počasno predvajanje (do 15 fps) kar nam do sedaj ni uspelo popraviti, ampak bomo  v prihodnjem času.
- 
+V tem trenutku imamo še uspešno implementirano realnočasovno zaznavanje in razpoznavanje prometnih znakov omejitve hitrosti s pomočjo YOLOv4 nevronske mreže in objektov kot so avtomobili z YOLOv5 nevronsko mrežo. Edina težava, ki jo pri tem imamo je počasno predvajanje (do 15 fps samo za znake in do 5 fps za znake in objekte) kar nam do sedaj ni uspelo popraviti.
 
- 
+![image](https://user-images.githubusercontent.com/77195829/176136193-a3b3ee3e-4d82-47d7-b1d9-e440725806a8.png)
 
 
- 
 Uspele smo tudi implementirati prilagajanje hitrosti glede na prometne znake omejitve hitrosti, kar bomo tudi demonstrirale z videoposnetkom. 
-Implementirali smo tudi Kalmanov filter in PID kontroler na simulaciji kretanja vozila za tarčo ki spreminja svojo hitrost (simulacija ni povezana s Carlo). Naša implementacija precej dobro deluje in vzdržuje razdaljo do tarče z vrednostjo napake manjšo kot ±10% od željene razdalje. Naslednji korak pri tem je integracija z projektom in delovanje na našem glavnem vozlišču, s čemer bomo končali z izdelavo adaptivnega tempomata.
-Še en iziv, ki ga bomo imeli pri izdelavi adaptivnega tempomata bo določanje tarče. Med zaznanimi vozili pred nami bodo tudi avta iz nasprotne smeri, katerih hitrost in razdalja ne bi smela vplivati na našo vožnjo in hitrost, tako da bomo morali fiksirati zaznan avto pred nami in konstantno računati razdaljo do njega. 
 
-skupina IT girls
-Anja Kuzev,
-Ana Tashevska
-in Milica Masić
+![image](https://user-images.githubusercontent.com/77195829/176136277-fd2b4c38-c24d-4aff-a7e9-d74c283fd8ca.png)
+ 
+
+Implementirali smo tudi Kalmanov filter in PID kontroler na simulaciji kretanja vozila za tarčo ki spreminja svojo hitrost (simulacija ni povezana s Carlo). Naša implementacija precej dobro deluje in vzdržuje razdaljo do tarče z vrednostjo napake manjšo kot ±10% od željene razdalje. 
+
+Na koncu smo tempomat implementirali s pomočjo Obstacle detector senzorja, ki smo ga dodali na naše glavno vozilo in uporabili za detektiranje vozila pred nami. Potem smo izračunali hitrost in razdaljo do vozila pred nami in ustrezno prilagodili hitrost našega glavnega vozlišča. 
